@@ -37,6 +37,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div id="edit-alert"></div>
                 <form id="edit-form">
                     <div class="mb-3">
                         <label for="name-edit" class="form-label">Name</label>

@@ -1,3 +1,5 @@
+showUsers();
+
 const addFormElement = document.querySelector("#add-form");
 const addAlertElement = document.querySelector("#add-alert");
 
@@ -46,11 +48,141 @@ addFormElement.addEventListener("submit", async function (e) {
             addAlertElement.innerHTML = alertMaker(result.success, "success");
             nameAddElement.value = "";
             emailAddElement.value = "";
+            showUsers();
         } else if (result.failure) {
             addAlertElement.innerHTML = alertMaker(result.failure);
         } else {
             addAlertElement.innerHTML = alertMaker();
         }
+    }
+});
+
+async function showUsers() {
+    const response = await fetch("./api/show-users.php");
+    const result = await response.json();
+
+    const responseElement = document.querySelector("#response");
+
+    if (result.length !== 0) {
+        let rows = "";
+        result.forEach(function (user, index) {
+            rows += `<tr>
+                                         <td>${index + 1}</td>
+                                         <td>${user.name}</td>
+                                         <td>${user.email}</td>
+                                         <td>
+                                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal" onclick="editUser(${user.id})">
+                                                 Edit
+                                             </button>
+                                             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
+                                                 Delete
+                                             </button>
+                                         </td>
+                                     </tr>`;
+        });
+        responseElement.innerHTML = `
+        <table class="table table-bordered m-0">
+                            <thead>
+                                <tr>
+                                    <th>Sr. No.</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                ${rows}
+                            </tbody>
+                        </table>`;
+    } else {
+        responseElement.innerHTML = `<div class="alert alert-info m-0">No record found!</div>`;
+    }
+}
+
+let mainId = 0;
+
+async function editUser(id) {
+    mainId = id;
+    const data = {
+        id: id
+    };
+
+    const response = await fetch("./api/show-single-user.php", {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+
+    const result = await response.json();
+
+    const nameEditElement = document.querySelector("#name-edit");
+    const emailEditElement = document.querySelector("#email-edit");
+
+    nameEditElement.value = result.name;
+    emailEditElement.value = result.email;
+}
+
+const editFormElement = document.querySelector("#edit-form");
+const editAlertElement = document.querySelector("#edit-alert");
+
+editFormElement.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const nameEditElement = document.querySelector("#name-edit");
+    const emailEditElement = document.querySelector("#email-edit");
+
+    let nameEditValue = nameEditElement.value;
+    let emailEditValue = emailEditElement.value;
+
+    nameEditElement.classList.remove("is-invalid");
+    emailEditElement.classList.remove("is-invalid");
+    editAlertElement.innerHTML = "";
+
+    if (nameEditValue == "" || nameEditValue === undefined) {
+        nameEditElement.classList.add("is-invalid");
+        editAlertElement.innerHTML = alertMaker("Name is required!");
+    } else if (emailEditValue == "" || emailEditValue === undefined) {
+        emailEditElement.classList.add("is-invalid");
+        editAlertElement.innerHTML = alertMaker("Email is required!");
+    } else {
+        const data = {
+            name: nameEditValue,
+            email: emailEditValue,
+            id: mainId,
+            submit: 1
+        };
+
+        const response = await fetch("./api/edit-user.php", {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.nameError) {
+            nameEditElement.classList.add("is-invalid");
+            editAlertElement.innerHTML = alertMaker(result.nameError);
+        } else if (result.emailError) {
+            emailEditElement.classList.add("is-invalid");
+            editAlertElement.innerHTML = alertMaker(result.emailError);
+        } else if (result.success) {
+            editAlertElement.innerHTML = alertMaker(result.success, "success");
+            showUsers();
+        } else if (result.failure) {
+            editAlertElement.innerHTML = alertMaker(result.failure);
+        } else {
+            editAlertElement.innerHTML = alertMaker("Something went wrong!");
+        }
+
+        console.log(result);
+        // editAlertElement.innerHTML = alertMaker("Good to go!", "success");
+
     }
 });
 
