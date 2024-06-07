@@ -19,7 +19,7 @@
                                 <h4>Users</h4>
                             </div>
                             <div class="col-6 text-end">
-                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addUserModal" onclick="clearAddModal()">
                                     Add User
                                 </button>
                             </div>

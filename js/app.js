@@ -74,7 +74,7 @@ async function showUsers() {
                                              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal" onclick="editUser(${user.id})">
                                                  Edit
                                              </button>
-                                             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
+                                             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal" onclick="deleteUser(${user.id})">
                                                  Delete
                                              </button>
                                          </td>
@@ -103,6 +103,7 @@ async function showUsers() {
 let mainId = 0;
 
 async function editUser(id) {
+    clearEditModal();
     mainId = id;
     const data = {
         id: id
@@ -179,12 +180,76 @@ editFormElement.addEventListener("submit", async function (e) {
         } else {
             editAlertElement.innerHTML = alertMaker("Something went wrong!");
         }
-
-        console.log(result);
-        // editAlertElement.innerHTML = alertMaker("Good to go!", "success");
-
     }
 });
+
+async function deleteUser(id) {
+    mainId = id;
+}
+
+const deleteFormElement = document.querySelector("#delete-form");
+
+deleteFormElement.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const data = {
+        id: mainId,
+    };
+    const response = await fetch("./api/delete-user.php", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+
+    const result = await response.json();
+
+    const alertElement = document.querySelector("#alert");
+    if (result.success) {
+        showUsers();
+        alertElement.innerHTML = alertMaker(result.success, "success");
+    } else if (result.failure) {
+        alertElement.innerHTML = alertMaker(result.failure);
+    } else {
+        alertElement.innerHTML = alertMaker("Something went wrong!");
+    }
+    closeDeleteModal();
+});
+
+function closeDeleteModal() {
+    const modalElement = document.querySelector('#deleteUserModal');
+    const modal = bootstrap.Modal.getInstance(modalElement);
+
+    if (modal) {
+        modal.hide();
+    }
+}
+
+function clearAddModal() {
+    const nameAddElement = document.querySelector("#name-add");
+    const emailAddElement = document.querySelector("#email-add");
+
+    addAlertElement.innerHTML = "";
+
+    nameAddElement.classList.remove("is-invalid");
+    emailAddElement.classList.remove("is-invalid");
+
+    nameAddElement.value = "";
+    emailAddElement.value = "";
+}
+
+function clearEditModal() {
+    const nameEditElement = document.querySelector("#name-edit");
+    const emailEditElement = document.querySelector("#email-edit");
+
+    editAlertElement.innerHTML = "";
+
+    nameEditElement.classList.remove("is-invalid");
+    emailEditElement.classList.remove("is-invalid");
+
+    nameEditElement.value = "";
+    emailEditElement.value = "";
+}
 
 function alertMaker(msg = "Something went wrong!", cls = "danger") {
     return `<div class="alert alert-${cls} alert-dismissible fade show" role="alert">
